@@ -1,29 +1,74 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, MessageCircle, PiggyBank, TrendingUp, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Moneywise — Your AI financial coach" },
+      { name: "description", content: "Take control of your money with AI-powered tax, savings, and daily budget guidance." },
     ],
   }),
-  component: Index,
+  component: Welcome,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const features = [
+  { icon: MessageCircle, title: "AI chat that gets your money", desc: "Ask anything — tax, savings, budgets." },
+  { icon: PiggyBank, title: "Smart savings targets", desc: "Personalized goals based on real income." },
+  { icon: TrendingUp, title: "Daily safe-to-spend", desc: "Know exactly how much you can spend today." },
+  { icon: ShieldCheck, title: "Private by design", desc: "Your financial data stays yours." },
+];
+
+function Welcome() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      {/* Background flourish */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[55vh] bg-gradient-to-br from-primary via-primary to-[oklch(0.5_0.18_265)]" />
+      <div className="pointer-events-none absolute -right-24 top-24 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-60 h-60 w-60 rounded-full bg-success/40 blur-3xl" />
+
+      <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 pb-10 pt-14 text-primary-foreground">
+        <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-accent-foreground shadow-card">
+            <span className="font-bold">₹</span>
+          </div>
+          Moneywise
+        </div>
+
+        <div className="mt-16">
+          <h1 className="text-[2.5rem] font-extrabold leading-[1.05] tracking-tight">
+            Your AI <br />
+            <span className="text-accent">financial coach</span>
+          </h1>
+          <p className="mt-4 max-w-sm text-base text-primary-foreground/80">
+            Calculate taxes, plan savings and know exactly how much you can spend today — all in one chat.
+          </p>
+        </div>
+
+        <div className="mt-10 grid grid-cols-2 gap-3">
+          {features.map(({ icon: Icon, title, desc }) => (
+            <div
+              key={title}
+              className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm"
+            >
+              <Icon className="h-5 w-5 text-accent" />
+              <p className="mt-2 text-[13px] font-semibold leading-tight">{title}</p>
+              <p className="mt-1 text-[11px] text-primary-foreground/70 leading-snug">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto space-y-3 pt-10">
+          <Button asChild size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 text-base font-semibold shadow-elevated">
+            <Link to="/auth/signup">
+              Get started <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="h-11 w-full rounded-xl text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
+            <Link to="/auth/login">I already have an account</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
