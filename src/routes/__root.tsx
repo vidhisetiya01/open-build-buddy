@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#1E3A8A" },
+      { name: "theme-color", content: "#064e3b" },
       { title: "Moneywise — Your AI financial coach" },
       { name: "description", content: "Personal finance, taxes, savings and daily budget guidance powered by AI." },
       { property: "og:title", content: "Moneywise — Your AI financial coach" },

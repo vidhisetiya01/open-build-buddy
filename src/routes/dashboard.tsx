@@ -29,7 +29,7 @@ function Dashboard() {
     >
       <div className="space-y-5 px-5 pt-2">
         {/* Health score hero card */}
-        <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary to-[oklch(0.45_0.16_265)] p-5 text-primary-foreground shadow-elevated">
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-[oklch(0.30_0.08_165)] via-[oklch(0.45_0.10_165)] to-[oklch(0.76_0.12_88)] p-5 text-primary-foreground shadow-elevated">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-primary-foreground/70">Financial health</p>
