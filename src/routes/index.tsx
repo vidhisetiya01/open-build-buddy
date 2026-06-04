@@ -49,7 +49,7 @@ function Welcome() {
           {features.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
-              className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm"
+              className="rounded-2xl border border-white/15 p-4 backdrop-blur-sm bg-lime-800"
             >
               <Icon className="h-5 w-5 text-accent" />
               <p className="mt-2 text-[13px] font-semibold leading-tight">{title}</p>
