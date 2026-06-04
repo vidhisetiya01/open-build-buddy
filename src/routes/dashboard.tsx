@@ -159,7 +159,7 @@ function ScoreRing({ value }: { value: number }) {
       <circle cx="36" cy="36" r={r} fill="none" stroke="oklch(1 0 0 / 0.2)" strokeWidth="6" />
       <circle
         cx="36" cy="36" r={r} fill="none"
-        stroke="oklch(0.78 0.16 70)"
+        stroke="oklch(0.76 0.12 88)"
         strokeWidth="6" strokeLinecap="round"
         strokeDasharray={c} strokeDashoffset={offset}
         transform="rotate(-90 36 36)"
