@@ -109,10 +109,11 @@ function Dashboard() {
 }
 
 function StatCard({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string; tone: "accent" | "success" }) {
-  const bg = tone === "accent" ? "bg-accent-soft text-accent-foreground" : "bg-success-soft text-success-foreground";
+  const isSuccess = tone === "success";
   const iconClass = tone === "accent" ? "bg-accent text-accent-foreground" : "bg-success text-success-foreground";
+  
   return (
-    <Card className={`p-4 ${bg} border-0`}>
+    <Card className={isSuccess ? "rounded-xl shadow p-4 bg-success-soft text-success-foreground border-0 text-neutral-900" : "p-4 bg-accent-soft text-accent-foreground border-0"}>
       <div className={`grid h-9 w-9 place-items-center rounded-lg ${iconClass}`}>
         <Icon className="h-4 w-4" />
       </div>
