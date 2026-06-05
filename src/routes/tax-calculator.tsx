@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { calcTax, type Regime } from "@/lib/tax";
 import { inr } from "@/lib/format";
+import { useProfile } from "@/hooks/use-profile";
 
 export const Route = createFileRoute("/tax-calculator")({
   head: () => ({ meta: [{ title: "Tax calculator — Moneywise" }] }),
@@ -15,9 +16,19 @@ export const Route = createFileRoute("/tax-calculator")({
 });
 
 function TaxCalculator() {
+  const { profile } = useProfile();
   const [income, setIncome] = useState(1200000);
   const [deductions, setDeductions] = useState(150000);
   const [regime, setRegime] = useState<Regime>("new");
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Prefill annual income from the user's monthly salary the first time it loads
+  useEffect(() => {
+    if (!prefilled && profile.monthlyIncome > 0) {
+      setIncome(profile.monthlyIncome * 12);
+      setPrefilled(true);
+    }
+  }, [profile.monthlyIncome, prefilled]);
 
   const result = calcTax(income, regime, deductions);
 

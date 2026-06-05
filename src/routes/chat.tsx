@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Send, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { useProfile } from "@/hooks/use-profile";
+import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "Chat — Moneywise" }] }),
@@ -10,35 +12,75 @@ export const Route = createFileRoute("/chat")({
 
 interface Msg { role: "user" | "bot"; text: string; }
 
-const seed: Msg[] = [
-  { role: "bot", text: "Hi Ananya! I'm your Moneywise coach. Ask me anything — taxes, savings, budgets." },
-];
-
-const quickReplies = [
-  "How much tax will I pay?",
-  "What should I save monthly?",
-  "Can I afford a ₹40k EMI?",
-  "Best way to invest ₹10k?",
-];
-
-function fakeResponse(q: string): string {
-  const lower = q.toLowerCase();
-  if (lower.includes("tax")) return "Based on your ₹95,000/month income, you'd pay around ₹52,400/year under the new regime — about 4.6% effective. Want me to open the tax calculator?";
-  if (lower.includes("save")) return "A healthy target for your income is 20% — about ₹19,000/month. You're already at ₹18,500, great pace! 🎉";
-  if (lower.includes("emi")) return "A ₹40k EMI would push fixed costs to 65% of income. I'd suggest staying under 50% — try ₹25k EMI for breathing room.";
-  if (lower.includes("invest")) return "For ₹10k/month, a mix works well: 60% diversified equity index fund, 30% balanced advantage, 10% liquid for emergencies.";
-  return "Great question — give me a moment to crunch the numbers based on your profile.";
-}
-
 function Chat() {
+  const { profile, derived } = useProfile();
+  const firstName = (profile.name || "there").split(" ")[0];
+  const hasData = profile.monthlyIncome > 0;
+
+  const seed: Msg[] = useMemo(
+    () => [
+      {
+        role: "bot",
+        text: hasData
+          ? `Hi ${firstName}! I see ${inr(profile.monthlyIncome)}/month income and ${inr(derived.essentials)} essentials. Ask me anything.`
+          : `Hi ${firstName}! Add your income and expenses on the dashboard so I can give you specific advice.`,
+      },
+    ],
+    [firstName, hasData, profile.monthlyIncome, derived.essentials],
+  );
+
   const [messages, setMessages] = useState<Msg[]>(seed);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Refresh greeting when profile loads
+  useEffect(() => setMessages(seed), [seed]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
+
+  const reply = (q: string): string => {
+    const lower = q.toLowerCase();
+    if (!hasData) return "I need your income & expenses first — head to the dashboard and tap the pencil icon to add them.";
+
+    const yearly = profile.monthlyIncome * 12;
+    if (lower.includes("tax")) {
+      const est = Math.max(0, Math.round((yearly - 750000) * 0.1));
+      return `On ${inr(yearly)}/year, you'd pay around ${inr(est)} under the new regime. Open the tax calculator for an exact breakdown.`;
+    }
+    if (lower.includes("save")) {
+      const target = Math.round(profile.monthlyIncome * 0.2);
+      const gap = target - derived.monthlySavings;
+      return gap > 0
+        ? `A 20% target is ${inr(target)}/month — you're at ${inr(derived.monthlySavings)}, ${inr(gap)} short. Trim flexible spend to bridge it.`
+        : `You're already saving ${inr(derived.monthlySavings)}/month (${Math.round((derived.monthlySavings / profile.monthlyIncome) * 100)}% of income). 🎉`;
+    }
+    if (lower.includes("emi") || lower.includes("afford")) {
+      const safeEmi = Math.round(profile.monthlyIncome * 0.4 - profile.emi);
+      return safeEmi > 0
+        ? `You can comfortably add up to ${inr(safeEmi)} in EMI without exceeding 40% of income. Current EMI: ${inr(profile.emi)}.`
+        : `Your EMIs already use 40%+ of income. Avoid new ones until existing loans wind down.`;
+    }
+    if (lower.includes("invest") || lower.includes("sip")) {
+      const sip = Math.max(1000, Math.round(derived.monthlySavings * 0.7));
+      return `With ${inr(derived.monthlySavings)} saving capacity, start a ${inr(sip)} SIP — 60% diversified equity, 30% balanced, 10% liquid.`;
+    }
+    if (lower.includes("spend") || lower.includes("today") || lower.includes("daily")) {
+      return `Your safe-to-spend is ${inr(derived.dailyBudget)}/day after essentials and savings.`;
+    }
+    return `Based on your plan — ${inr(profile.monthlyIncome)} income, ${inr(derived.essentials)} essentials — you have ${inr(derived.flexible)} flexible each month. What specifically would you like to optimize?`;
+  };
+
+  const quickReplies = hasData
+    ? [
+        "How much tax will I pay?",
+        "What should I save monthly?",
+        `Can I afford a ${inr(Math.round(profile.monthlyIncome * 0.3))} EMI?`,
+        "Best way to invest?",
+      ]
+    : ["How does this work?", "What can you help me with?"];
 
   const send = (text: string) => {
     const value = text.trim();
@@ -47,15 +89,15 @@ function Chat() {
     setInput("");
     setTyping(true);
     setTimeout(() => {
-      setMessages((m) => [...m, { role: "bot", text: fakeResponse(value) }]);
+      setMessages((m) => [...m, { role: "bot", text: reply(value) }]);
       setTyping(false);
-    }, 900);
+    }, 700);
   };
 
   return (
     <AppShell
       title="Moneywise AI"
-      subtitle="Online · ready to help"
+      subtitle={hasData ? `Coaching ${firstName}` : "Online · ready to help"}
       right={
         <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground">
           <Sparkles className="h-5 w-5" />
