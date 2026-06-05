@@ -1,32 +1,51 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Plus, ShoppingBag, Utensils, Car, Film, Zap, Home } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Plus, ShoppingBag, Utensils, Car, Film, Zap, Home, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { inr } from "@/lib/format";
+import { useProfile } from "@/hooks/use-profile";
 
 export const Route = createFileRoute("/expenses")({
   head: () => ({ meta: [{ title: "Expenses — Moneywise" }] }),
   component: Expenses,
 });
 
-const categories = [
-  { icon: Home, name: "Rent", spent: 20000, budget: 20000, color: "bg-primary" },
-  { icon: Utensils, name: "Food", spent: 8200, budget: 10000, color: "bg-success" },
-  { icon: Car, name: "Transport", spent: 3400, budget: 5000, color: "bg-accent" },
-  { icon: ShoppingBag, name: "Shopping", spent: 4900, budget: 4000, color: "bg-destructive" },
-  { icon: Film, name: "Entertainment", spent: 1800, budget: 3000, color: "bg-chart-4" },
-  { icon: Zap, name: "Utilities", spent: 2200, budget: 3000, color: "bg-chart-5" },
-];
-
 function Expenses() {
+  const { profile, derived } = useProfile();
+  const hasData = profile.monthlyIncome > 0;
+
+  // Derive category budgets from the user's plan. Flexible bucket is split
+  // across discretionary categories so totals match what they entered.
+  const flex = Math.max(0, derived.flexible);
+  const otherEss = Math.max(0, profile.otherEssentials);
+  const categories = [
+    { icon: Home, name: "Rent", spent: profile.rent, budget: profile.rent, color: "bg-primary" },
+    { icon: CreditCard, name: "EMIs", spent: profile.emi, budget: profile.emi, color: "bg-chart-4" },
+    { icon: Utensils, name: "Food & groceries", spent: Math.round(otherEss * 0.6), budget: Math.round(otherEss * 0.6), color: "bg-success" },
+    { icon: Zap, name: "Utilities", spent: Math.round(otherEss * 0.4), budget: Math.round(otherEss * 0.4), color: "bg-chart-5" },
+    { icon: Car, name: "Transport", spent: Math.round(flex * 0.25), budget: Math.round(flex * 0.3), color: "bg-accent" },
+    { icon: ShoppingBag, name: "Shopping", spent: Math.round(flex * 0.35), budget: Math.round(flex * 0.4), color: "bg-destructive" },
+    { icon: Film, name: "Entertainment", spent: Math.round(flex * 0.2), budget: Math.round(flex * 0.3), color: "bg-chart-4" },
+  ].filter((c) => c.budget > 0 || c.spent > 0);
+
   const totalSpent = categories.reduce((a, c) => a + c.spent, 0);
-  const totalBudget = categories.reduce((a, c) => a + c.budget, 0);
+  const totalBudget = categories.reduce((a, c) => a + c.budget, 0) || 1;
   const pct = Math.round((totalSpent / totalBudget) * 100);
 
   return (
-    <AppShell title="Expenses" subtitle="This month">
+    <AppShell title="Expenses" subtitle={hasData ? `${profile.name?.split(" ")[0] || "Your"} budget` : "This month"}>
       <div className="space-y-5 px-5 pt-2">
+        {!hasData && (
+          <Card className="p-4 text-sm">
+            <p className="font-semibold">No expenses yet</p>
+            <p className="mt-1 text-muted-foreground">
+              Set your income and bills on the{" "}
+              <Link to="/dashboard" className="font-semibold text-primary">dashboard</Link> to see your budget breakdown.
+            </p>
+          </Card>
+        )}
+
         <Card className="p-5">
           <div className="flex items-end justify-between">
             <div>
@@ -51,8 +70,11 @@ function Expenses() {
             </Button>
           </div>
           <div className="space-y-2">
+            {categories.length === 0 && (
+              <p className="text-sm text-muted-foreground">No categories yet — add your essentials on the dashboard.</p>
+            )}
             {categories.map((c) => {
-              const p = Math.round((c.spent / c.budget) * 100);
+              const p = c.budget > 0 ? Math.round((c.spent / c.budget) * 100) : 0;
               const over = c.spent > c.budget;
               return (
                 <Card key={c.name} className="p-4">
