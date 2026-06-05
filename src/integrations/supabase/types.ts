@@ -48,24 +48,39 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          emi: number
+          flexible_spend: number
           id: string
           monthly_income: number | null
+          monthly_savings_goal: number
+          other_essentials: number
+          rent: number
           tax_regime: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
+          emi?: number
+          flexible_spend?: number
           id: string
           monthly_income?: number | null
+          monthly_savings_goal?: number
+          other_essentials?: number
+          rent?: number
           tax_regime?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           display_name?: string | null
+          emi?: number
+          flexible_spend?: number
           id?: string
           monthly_income?: number | null
+          monthly_savings_goal?: number
+          other_essentials?: number
+          rent?: number
           tax_regime?: string
           updated_at?: string
         }

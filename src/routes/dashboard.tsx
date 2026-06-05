@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Bell, Calculator, MessageCircle, Pencil, PiggyBank, Plus, TrendingUp, Users, Wallet } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Bell, Calculator, MessageCircle, Pencil, PiggyBank, Plus, TrendingUp, Wallet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { inr } from "@/lib/format";
-import { samplePeople, useProfile, type UserProfile } from "@/hooks/use-profile";
+import { useProfile, type UserProfile } from "@/hooks/use-profile";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Moneywise" }] }),
@@ -30,14 +23,27 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { profile, setProfile } = useProfile();
-  const firstName = profile.name.split(" ")[0];
+  const { profile, derived, setProfile, userId, loading } = useProfile();
+  const navigate = useNavigate();
+  const firstName = (profile.name || "there").split(" ")[0];
+  const incomplete = profile.monthlyIncome === 0;
+  const [editOpen, setEditOpen] = useState(false);
+
+  // Auto-open the edit dialog for first-time users
+  useEffect(() => {
+    if (!loading && userId && incomplete) setEditOpen(true);
+  }, [loading, userId, incomplete]);
 
   return (
     <AppShell
       right={
         <div className="flex items-center gap-2">
-          <EditProfileButton profile={profile} onSave={setProfile} />
+          <EditProfileButton
+            profile={profile}
+            onSave={setProfile}
+            open={editOpen}
+            onOpenChange={setEditOpen}
+          />
           <button className="relative grid h-10 w-10 place-items-center rounded-full bg-muted text-foreground">
             <Bell className="h-5 w-5" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent" />
@@ -45,59 +51,68 @@ function Dashboard() {
         </div>
       }
       title={`Hi, ${firstName} 👋`}
-      subtitle="Here's your money today"
+      subtitle={userId ? "Here's your money today" : "Sign in to save your plan"}
     >
       <div className="space-y-5 px-5 pt-2">
-        {/* Persona switcher */}
-        <Card className="flex items-center gap-3 p-3">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary-soft text-primary">
-            <Users className="h-4 w-4" />
-          </div>
-          <div className="flex-1 text-xs">
-            <p className="font-semibold">Try a sample profile</p>
-            <p className="text-muted-foreground">Switch to explore different income levels</p>
-          </div>
-          <Select
-            value={samplePeople.find((p) => p.name === profile.name) ? profile.name : "__custom"}
-            onValueChange={(v) => {
-              const found = samplePeople.find((p) => p.name === v);
-              if (found) setProfile(found);
-            }}
-          >
-            <SelectTrigger className="h-9 w-[140px] text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {samplePeople.map((p) => (
-                <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
-              ))}
-              {!samplePeople.find((p) => p.name === profile.name) && (
-                <SelectItem value="__custom">{profile.name} (custom)</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </Card>
+        {!userId && (
+          <Card className="flex items-center gap-3 p-3">
+            <div className="flex-1 text-xs">
+              <p className="font-semibold">You're browsing as a guest</p>
+              <p className="text-muted-foreground">Log in to sync your plan across devices</p>
+            </div>
+            <Button size="sm" onClick={() => navigate({ to: "/auth/login" })}>Log in</Button>
+          </Card>
+        )}
+
+        {incomplete && (
+          <Card className="flex items-center gap-3 p-3 border-accent/40 bg-accent-soft">
+            <div className="flex-1 text-xs">
+              <p className="font-semibold">Let's personalize your plan</p>
+              <p className="text-muted-foreground">Add salary, rent and EMIs to see your numbers</p>
+            </div>
+            <Button size="sm" onClick={() => setEditOpen(true)}>Add</Button>
+          </Card>
+        )}
 
         {/* Health score hero card */}
         <Card className="overflow-hidden border-0 bg-gradient-to-br from-[oklch(0.30_0.08_165)] via-[oklch(0.45_0.10_165)] to-[oklch(0.76_0.12_88)] p-5 text-primary-foreground shadow-elevated">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-primary-foreground/70">Financial health</p>
-              <p className="mt-1 text-5xl font-extrabold tabular">{profile.healthScore}</p>
-              <p className="text-xs text-primary-foreground/80">Doing great — keep going.</p>
+              <p className="mt-1 text-5xl font-extrabold tabular">{derived.healthScore}</p>
+              <p className="text-xs text-primary-foreground/80">{scoreMessage(derived.healthScore)}</p>
             </div>
-            <ScoreRing value={profile.healthScore} />
+            <ScoreRing value={derived.healthScore} />
           </div>
           <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${profile.healthScore}%` }} />
+            <div className="h-full rounded-full bg-accent" style={{ width: `${derived.healthScore}%` }} />
           </div>
         </Card>
 
         {/* Quick stats */}
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon={Wallet} label="Daily safe-to-spend" value={inr(profile.dailyBudget)} tone="accent" />
-          <StatCard icon={PiggyBank} label="Saved this month" value={inr(profile.monthlySavings)} tone="success" />
+          <StatCard icon={Wallet} label="Daily safe-to-spend" value={inr(derived.dailyBudget)} tone="accent" />
+          <StatCard icon={PiggyBank} label="Can save / month" value={inr(derived.monthlySavings)} tone="success" />
         </div>
+
+        {/* Your plan */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your plan</p>
+            <button onClick={() => setEditOpen(true)} className="text-xs font-semibold text-primary">Edit</button>
+          </div>
+          <p className="mt-1 text-2xl font-bold tabular">{inr(profile.monthlyIncome)} <span className="text-xs font-normal text-muted-foreground">/ month income</span></p>
+          <div className="mt-4 space-y-2 text-sm">
+            <Row label="Essentials (rent + EMI + bills)" value={inr(derived.essentials)} pct={pct(derived.essentials, profile.monthlyIncome)} color="bg-primary" />
+            <Row label="Savings goal" value={inr(derived.monthlySavings)} pct={pct(derived.monthlySavings, profile.monthlyIncome)} color="bg-success" />
+            <Row label="Flexible spending" value={inr(derived.flexible)} pct={pct(derived.flexible, profile.monthlyIncome)} color="bg-accent" />
+          </div>
+          {profile.monthlyIncome > 0 && (
+            <p className="mt-3 rounded-lg bg-muted p-2 text-xs text-muted-foreground">
+              {planAdvice(derived)}
+            </p>
+          )}
+        </Card>
 
         {/* Quick actions */}
         <section>
@@ -109,46 +124,6 @@ function Dashboard() {
             <ActionTile to="/expenses" icon={TrendingUp} label="Expenses" />
           </div>
         </section>
-
-        {/* Recent chats */}
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Recent chats</h2>
-            <Link to="/chat" className="text-xs font-semibold text-primary">View all</Link>
-          </div>
-          <div className="space-y-2">
-            {[
-              { q: "How much tax will I pay this year?", a: "Estimated ₹52,000 under new regime…" },
-              { q: "Can I afford an iPhone EMI?", a: "Yes — fits within 15% of income…" },
-              { q: "Best SIP for ₹10k/month?", a: "Consider a diversified equity fund…" },
-            ].map((c) => (
-              <Link
-                key={c.q}
-                to="/chat"
-                className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3 shadow-card transition hover:border-primary/40"
-              >
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
-                  <MessageCircle className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{c.q}</p>
-                  <p className="truncate text-xs text-muted-foreground">{c.a}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Income summary */}
-        <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Monthly income</p>
-          <p className="mt-1 text-2xl font-bold tabular">{inr(profile.monthlyIncome)}</p>
-          <div className="mt-4 space-y-2 text-sm">
-            <Row label="Essentials" value={inr(profile.essentials)} pct={pct(profile.essentials, profile.monthlyIncome)} color="bg-primary" />
-            <Row label="Savings" value={inr(profile.monthlySavings)} pct={pct(profile.monthlySavings, profile.monthlyIncome)} color="bg-success" />
-            <Row label="Flexible" value={inr(profile.flexible)} pct={pct(profile.flexible, profile.monthlyIncome)} color="bg-accent" />
-          </div>
-        </Card>
 
         <Button asChild size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 shadow-card">
           <Link to="/chat"><Plus className="mr-1 h-4 w-4" />New analysis</Link>
@@ -163,45 +138,68 @@ function pct(part: number, total: number) {
   return Math.round((part / total) * 100);
 }
 
-function EditProfileButton({ profile, onSave }: { profile: UserProfile; onSave: (p: UserProfile) => void }) {
-  const [open, setOpen] = useState(false);
+function scoreMessage(s: number) {
+  if (s >= 80) return "Excellent — keep going.";
+  if (s >= 60) return "Doing well, room to grow.";
+  if (s >= 40) return "On the right track.";
+  if (s > 0) return "Tighten essentials, boost savings.";
+  return "Add your numbers to start.";
+}
+
+function planAdvice(d: ReturnType<typeof import("@/hooks/use-profile").derive>) {
+  const sr = d.monthlyIncome > 0 ? d.monthlySavings / d.monthlyIncome : 0;
+  if (d.essentials > d.monthlyIncome) return "Essentials exceed income — review rent or EMIs first.";
+  if (sr < 0.1) return "Try saving at least 10% of income — even ₹1,000 more helps.";
+  if (sr < 0.2) return "Great start. Aim for 20% savings to build a buffer.";
+  return "You're saving well. Consider SIPs or an emergency fund.";
+}
+
+function EditProfileButton({
+  profile,
+  onSave,
+  open,
+  onOpenChange,
+}: {
+  profile: UserProfile;
+  onSave: (p: UserProfile) => void;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const [draft, setDraft] = useState<UserProfile>(profile);
 
+  useEffect(() => {
+    if (open) setDraft(profile);
+  }, [open, profile]);
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (o) setDraft(profile);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <button className="grid h-10 w-10 place-items-center rounded-full bg-muted text-foreground" aria-label="Edit profile">
           <Pencil className="h-4 w-4" />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Customize your profile</DialogTitle>
+          <DialogTitle>Your financial profile</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Field label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
-          <NumField label="Monthly income (₹)" value={draft.monthlyIncome} onChange={(v) => setDraft({ ...draft, monthlyIncome: v })} />
-          <NumField label="Monthly savings (₹)" value={draft.monthlySavings} onChange={(v) => setDraft({ ...draft, monthlySavings: v })} />
-          <NumField label="Essentials (₹)" value={draft.essentials} onChange={(v) => setDraft({ ...draft, essentials: v })} />
-          <NumField label="Flexible spend (₹)" value={draft.flexible} onChange={(v) => setDraft({ ...draft, flexible: v })} />
-          <NumField label="Daily safe-to-spend (₹)" value={draft.dailyBudget} onChange={(v) => setDraft({ ...draft, dailyBudget: v })} />
-          <NumField label="Health score (0–100)" value={draft.healthScore} onChange={(v) => setDraft({ ...draft, healthScore: Math.max(0, Math.min(100, v)) })} />
+          <NumField label="Monthly salary / income (₹)" value={draft.monthlyIncome} onChange={(v) => setDraft({ ...draft, monthlyIncome: v })} />
+          <NumField label="Rent (₹/month)" value={draft.rent} onChange={(v) => setDraft({ ...draft, rent: v })} />
+          <NumField label="EMI payments (₹/month)" value={draft.emi} onChange={(v) => setDraft({ ...draft, emi: v })} />
+          <NumField label="Other essentials — bills, groceries (₹)" value={draft.otherEssentials} onChange={(v) => setDraft({ ...draft, otherEssentials: v })} />
+          <NumField label="Savings goal (₹/month)" value={draft.monthlySavingsGoal} onChange={(v) => setDraft({ ...draft, monthlySavingsGoal: v })} />
+          <NumField label="Extra flexible budget (₹)" value={draft.flexibleSpend} onChange={(v) => setDraft({ ...draft, flexibleSpend: v })} />
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
               onSave(draft);
-              setOpen(false);
+              onOpenChange(false);
             }}
           >
-            Save
+            Save plan
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -225,6 +223,7 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
       <Input
         inputMode="numeric"
         type="number"
+        min={0}
         value={Number.isFinite(value) ? value : 0}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="h-11 rounded-xl font-mono"
