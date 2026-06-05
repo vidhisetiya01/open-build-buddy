@@ -1,0 +1,7 @@
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS rent numeric NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS emi numeric NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS other_essentials numeric NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS flexible_spend numeric NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS monthly_savings_goal numeric NOT NULL DEFAULT 0;
