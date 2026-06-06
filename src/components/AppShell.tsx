@@ -12,7 +12,7 @@ interface AppShellProps {
 export function AppShell({ children, title, subtitle, right, hideNav }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen max-w-md flex-col">
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col md:max-w-3xl lg:max-w-5xl xl:max-w-6xl">
         {(title || right) && (
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/90 px-5 py-4 backdrop-blur">
             <div>
