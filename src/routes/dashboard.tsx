@@ -90,7 +90,7 @@ function Dashboard() {
         </Card>
 
         {/* Quick stats */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard icon={Wallet} label="Daily safe-to-spend" value={inr(derived.dailyBudget)} tone="accent" />
           <StatCard icon={PiggyBank} label="Can save / month" value={inr(derived.monthlySavings)} tone="success" />
         </div>
