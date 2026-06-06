@@ -90,7 +90,7 @@ function Dashboard() {
         </Card>
 
         {/* Quick stats */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard icon={Wallet} label="Daily safe-to-spend" value={inr(derived.dailyBudget)} tone="accent" />
           <StatCard icon={PiggyBank} label="Can save / month" value={inr(derived.monthlySavings)} tone="success" />
         </div>
@@ -117,7 +117,7 @@ function Dashboard() {
         {/* Quick actions */}
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Quick actions</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <ActionTile to="/chat" icon={MessageCircle} label="Ask AI" />
             <ActionTile to="/tax-calculator" icon={Calculator} label="Tax calc" />
             <ActionTile to="/savings" icon={PiggyBank} label="Savings" />
