@@ -38,11 +38,11 @@ function Welcome() {
         </div>
 
         <div className="mt-16">
-          <h1 className="text-[2.5rem] font-extrabold leading-[1.05] tracking-tight">
+          <h1 className="text-[2.5rem] font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
             Your AI <br />
             <span className="text-accent">financial coach</span>
           </h1>
-          <p className="mt-4 max-w-sm text-base text-primary-foreground/80">
+          <p className="mt-4 max-w-sm text-base text-primary-foreground/80 md:max-w-xl md:text-lg">
             Calculate taxes, plan savings and know exactly how much you can spend today — all in one chat.
           </p>
         </div>
