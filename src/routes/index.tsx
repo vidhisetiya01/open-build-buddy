@@ -47,7 +47,7 @@ function Welcome() {
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3">
+        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
           {features.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
