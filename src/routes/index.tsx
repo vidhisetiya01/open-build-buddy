@@ -28,11 +28,13 @@ function Welcome() {
       <div className="pointer-events-none absolute -left-20 top-60 h-60 w-60 rounded-full bg-success/40 blur-3xl" />
 
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 pb-10 pt-14 text-primary-foreground">
-        <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-accent-foreground shadow-card">
-            <span className="font-bold">₹</span>
+        <div className="inline-flex items-center gap-2.5 self-start rounded-full border border-white/25 bg-white/10 px-3 py-1.5 pr-4 shadow-[0_8px_30px_-8px_oklch(0_0_0/0.5)] backdrop-blur-md ring-1 ring-accent/40">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-accent to-[oklch(0.78_0.18_75)] text-accent-foreground shadow-[0_0_20px_oklch(0.85_0.18_85/0.6)]">
+            <span className="text-base font-black">₹</span>
           </div>
-          Moneywise
+          <span className="bg-gradient-to-r from-white to-accent bg-clip-text text-lg font-extrabold tracking-tight text-transparent">
+            Moneywise
+          </span>
         </div>
 
         <div className="mt-16">
