@@ -7,6 +7,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/chat")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Chat — Moneywise" }] }),
   component: Chat,
 });
