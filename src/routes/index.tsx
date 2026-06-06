@@ -60,7 +60,7 @@ function Welcome() {
           ))}
         </div>
 
-        <div className="mt-auto space-y-3 pt-10">
+        <div className="mt-auto space-y-3 pt-10 md:flex md:max-w-md md:space-y-0 md:gap-3 md:space-x-0">
           <Button asChild size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 text-base font-semibold shadow-elevated">
             <Link to="/auth/signup">
               Get started <ArrowRight className="ml-1 h-4 w-4" />
