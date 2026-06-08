@@ -224,7 +224,13 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
         inputMode="numeric"
         type="number"
         min={0}
-        value={Number.isFinite(value) ? value : 0}
+        value={Number.isFinite(value) ? value : ""}
+        onFocus={(e) => {
+          if (e.currentTarget.value === "0") {
+            e.currentTarget.value = "";
+            onChange(0);
+          }
+        }}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="h-11 rounded-xl font-mono"
       />
